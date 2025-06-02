@@ -23,9 +23,11 @@ import { Link, useParams } from "react-router-dom";
 import apiClient from "@/utils/apiService";
 import {
   connectWebSocket,
+  deleteMessage,
   sendMessage,
   subscribeToMessages,
   unsubscribeFromMessages,
+  updateMessage,
 } from "@/utils/websoketService";
 
 interface Message {
@@ -60,9 +62,8 @@ export default function ChatPage() {
   } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const friendName = userObj.name; // or fetch friend’s name via API if needed
+  const friendName = userObj.name;
 
-  /** Fetch existing chat history once on mount */
   const fetchMessages = async () => {
     try {
       const res = await apiClient.get(`/getMessages/${friendId}`);
@@ -90,7 +91,6 @@ export default function ChatPage() {
     }
   };
 
-  /** Scroll to bottom whenever `messages` changes */
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -99,28 +99,45 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
-  /** On mount: fetch history and open WebSocket + subscribe */
   useEffect(() => {
     fetchMessages();
     connectWebSocket(token);
 
-    subscribeToMessages((msg) => {
-      // msg is the raw payload from WebSocket server:
-      // { id, text, senderId, receiverId, createdAt }
+    subscribeToMessages((msg: any) => {
+      if (!msg || !msg.type || !msg.payload) return;
+
+      const { type, payload } = msg;
+
       if (
-        (msg.senderId === userObj.id && msg.receiverId === Number(friendId)) ||
-        (msg.senderId === Number(friendId) && msg.receiverId === userObj.id)
+        (payload.senderId === userObj.id &&
+          payload.receiverId === Number(friendId)) ||
+        (payload.senderId === Number(friendId) &&
+          payload.receiverId === userObj.id)
       ) {
-        const newMsg: Message = {
-          id: msg.id,
-          text: msg.text,
-          sender: msg.senderId === userObj.id ? "me" : "friend",
-          timestamp: new Date(msg.createdAt).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        };
-        setMessages((prev) => [...prev, newMsg]);
+        if (type === "message:created") {
+          const newMsg: Message = {
+            id: payload.id,
+            text: payload.text,
+            sender: payload.senderId === userObj.id ? "me" : "friend",
+            timestamp: new Date(payload.createdAt).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          };
+          setMessages((prev) => [...prev, newMsg]);
+        }
+
+        if (type === "message:deleted") {
+          setMessages((prev) => prev.filter((msg) => msg.id !== payload.id));
+        }
+
+        if (type === "message:updated") {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === payload.id ? { ...msg, text: payload.text } : msg
+            )
+          );
+        }
       }
     });
 
@@ -149,15 +166,32 @@ export default function ChatPage() {
   };
 
   const handleDeleteMessage = (id: number) => {
-    setMessages((prev) => prev.filter((msg) => msg.id !== id));
+    const payload = {
+      type: "message:delete",
+      payload: {
+        id,
+      },
+    };
+    deleteMessage(payload);
   };
 
   const handleEditMessage = (id: number, currentText: string) => {
+  
     setEditingMessage({ id, text: currentText });
   };
 
   const handleSaveEdit = () => {
     if (editingMessage) {
+        const payload = {
+      type: "message:update",
+      payload:{
+        id:editingMessage.id,
+        newText:editingMessage.text
+      }
+    }
+    console.log(payload,"payload");
+    
+    updateMessage(payload)
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === editingMessage.id
