@@ -5,8 +5,8 @@ import type { User } from "./ChatPage";
 import { logout } from "@/utils/apiService";
 
 export default function LandingPage() {
-  const data = localStorage.getItem("user");
-  const user: User | null = JSON.parse(data || "");
+  const data = localStorage.getItem("user")!;
+  const user: User | null = JSON.parse(data);
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-900 to-black">
       {/* Header */}
@@ -19,17 +19,15 @@ export default function LandingPage() {
         </div>
 
         {user ? (
-          <Link to="/logout">
-            <Button
-              variant="outline"
-              onClick={async () => {
-                await logout();
-              }}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-500 hover:border-emerald-600 px-8 py-2 rounded-full font-medium"
-            >
-              LOGOUT
-            </Button>
-          </Link>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              await logout();
+            }}
+            className="bg-emerald-500 hover:bg-emerald-600 text-white border-emerald-500 hover:border-emerald-600 px-8 py-2 rounded-full font-medium"
+          >
+            LOGOUT
+          </Button>
         ) : (
           <Link to="/signin">
             <Button

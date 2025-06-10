@@ -35,11 +35,11 @@ export default function SignInPage() {
       setError(null);
       const res = await login(data);
       console.log("Login successful", res);
-      navigate("/friends");
+      navigate("/chat");
       // or your dashboard route
     } catch (err) {
       console.error(err);
-      setError(err?.response?.data?.message || "Login failed");
+      setError( "Login failed");
     }
   };
 

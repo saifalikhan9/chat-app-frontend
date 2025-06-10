@@ -22,8 +22,8 @@ import {
 import { Link, useParams } from "react-router-dom";
 import apiClient from "@/utils/apiService";
 import {
-  connectWebSocket,
   deleteMessage,
+
   sendMessage,
   subscribeToMessages,
   unsubscribeFromMessages,
@@ -39,7 +39,7 @@ interface Message {
 }
 
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
   password: string;
@@ -51,16 +51,17 @@ export default function ChatPage() {
   const params = useParams();
   const friendId = params.friendId!;
   const user = localStorage.getItem("user")!;
-  const token = localStorage.getItem("token")!;
-  const userObj: User = JSON.parse(user);
 
+  const userObj: User = JSON.parse(user);
+ const inputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [editingMessage, setEditingMessage] = useState<{
     id: number;
     text: string;
   } | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+
 
   const friendName = userObj.name;
 
@@ -70,8 +71,8 @@ export default function ChatPage() {
       const messageArray = res.data.messages as Array<{
         id: number;
         text: string;
-        senderId: number;
-        receiverId: number;
+        senderId: string;
+        receiverId: string;
         createdAt: string;
       }>;
 
@@ -100,18 +101,20 @@ export default function ChatPage() {
   }, [messages]);
 
   useEffect(() => {
+    inputRef.current?.focus();
     fetchMessages();
-    connectWebSocket(token);
-
+    
     subscribeToMessages((msg: any) => {
+
+      
       if (!msg || !msg.type || !msg.payload) return;
 
       const { type, payload } = msg;
 
       if (
         (payload.senderId === userObj.id &&
-          payload.receiverId === Number(friendId)) ||
-        (payload.senderId === Number(friendId) &&
+          payload.receiverId === friendId) ||
+        (payload.senderId === friendId &&
           payload.receiverId === userObj.id)
       ) {
         if (type === "message:created") {
@@ -146,6 +149,7 @@ export default function ChatPage() {
     };
   }, []);
 
+
   /** Only send via WebSocket; do NOT append locally */
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,7 +161,7 @@ export default function ChatPage() {
       payload: {
         text: newMessage,
         senderId: userObj.id,
-        receiverId: Number(friendId),
+        receiverId: friendId,
       },
     };
 
@@ -176,22 +180,21 @@ export default function ChatPage() {
   };
 
   const handleEditMessage = (id: number, currentText: string) => {
-  
     setEditingMessage({ id, text: currentText });
   };
 
   const handleSaveEdit = () => {
     if (editingMessage) {
-        const payload = {
-      type: "message:update",
-      payload:{
-        id:editingMessage.id,
-        newText:editingMessage.text
-      }
-    }
-    console.log(payload,"payload");
-    
-    updateMessage(payload)
+      const payload = {
+        type: "message:update",
+        payload: {
+          id: editingMessage.id,
+          newText: editingMessage.text,
+        },
+      };
+      console.log(payload, "payload");
+
+      updateMessage(payload);
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === editingMessage.id

@@ -9,27 +9,19 @@ import type {
 } from "./types";
 
 const apiClient = axios.create({
-  baseURL: "http://192.168.1.3:3001", // change to your backend URL
+  baseURL: "http://192.168.1.3:3001/api/v1",
   headers: {
     "Content-Type": "application/json",
   },
-});
-
-// Attach token to all requests if available
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  } 
-  return config;
+  withCredentials: true,
 });
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.href = "/signin"; 
+      console.log("here");
+
+      window.location.href = "/signin";
     }
     return Promise.reject(error);
   }
@@ -42,23 +34,19 @@ export const signup = async (data: SignupPayload): Promise<AuthResponse> => {
   return res.data;
 };
 
-export const login = async (data: LoginPayload): Promise<AuthAxiosResponse> => {
-  const res = await apiClient.post<AuthAxiosResponse>("/login", data);
+export const login = async (data: LoginPayload) => {
+  const res: AuthAxiosResponse = await apiClient.post("/login", data);
   console.log(res);
 
-  localStorage.setItem("token", res.data.token);
-  localStorage.setItem("user", JSON.stringify(res.data?.data));
+  localStorage.setItem("token", res.data.accessToken);
+  localStorage.setItem("user", JSON.stringify(res.data.user));
   return res.data;
 };
 
 export const logout = async () => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    localStorage.removeItem("token");
-    const res = await apiClient.get("/logout");
-    console.log(res);
-    return res.data.response;
-  }
+  localStorage.clear();
+  const res = await apiClient.get("/logout");
+  return res.data.response;
 };
 
 // Users

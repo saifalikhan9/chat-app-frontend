@@ -1,33 +1,21 @@
+import type {
+  DeleteMessageData,
+  MessagePayload,
+  SendMessageData,
+  updateMessageData,
+} from "./types";
+
+export interface readData {
+  type: string;
+  payload: {
+    senderId: string;
+    receiverId: string;
+  };
+}
+
 let socket: WebSocket | null = null;
 let messageListener: ((message: MessagePayload) => void) | null = null;
-export interface MessagePayload {
-  id: number;
-  text: string;
-  senderId: number;
-  receiverId: number;
-  createdAt: Date;
-}
-export interface SendMessageData {
-  type: string;
-  payload: {
-    text: string;
-    senderId: number;
-    receiverId: number;
-  };
-}
-export interface DeleteMessageData {
-  type: string;
-  payload: {
-    id: number;
-  };
-}
-export interface updateMessageData {
-  type: string;
-  payload: {
-    newText: string;
-    id: number;
-  };
-}
+
 export function connectWebSocket(token: string) {
   socket = new WebSocket(`ws://192.168.1.3:3001?token=${token}`);
 
@@ -43,6 +31,11 @@ export function connectWebSocket(token: string) {
       if (messageListener) {
         messageListener(message);
       }
+      if (Notification.permission === "granted") {
+        new Notification("📩 New Message", {
+          body: message.text,
+        });
+      }
     }
     if (message.type === "message:updated") {
       if (messageListener) {
@@ -51,7 +44,12 @@ export function connectWebSocket(token: string) {
     }
     if (message.type === "message:deleted") {
       console.log("deleted");
-      
+
+      if (messageListener) {
+        messageListener(message);
+      }
+    }
+    if (message.type === "message:red") {
       if (messageListener) {
         messageListener(message);
       }
@@ -84,6 +82,16 @@ export function deleteMessage(data: DeleteMessageData) {
   }
 }
 export function updateMessage(data: updateMessageData) {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.send(JSON.stringify(data));
+  } else {
+    console.warn("⚠️ Socket not connected");
+  }
+}
+
+export function markMessagesAsRead(data: readData) {
+  
+
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify(data));
   } else {

@@ -17,15 +17,18 @@ export interface LoginPayload {
 }
 
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
-  // Do NOT include password or sensitive fields here
 }
 
 export interface AuthResponse {
-  token: string;
+  type: "success" | "error";
+  status: number;
+  message: string;
   user: User;
+  accessToken: string;
+  refreshToken: string;
 }
 
 export type AuthAxiosResponse = AxiosResponse<AuthResponse>;
@@ -36,15 +39,15 @@ export type AuthAxiosResponse = AxiosResponse<AuthResponse>;
 
 export interface FriendPayload {
   email?: string;
-  id?: number
+  id?: string;
 }
 
 export interface Friend {
-  id: number;
-  user: User;      // The user who sent the request
-  userId: number;
-  friend: User;    // The friend being added
-  friendId: number;
+  id: string;
+  user: User; // The user who sent the request
+  userId: string;
+  friend: User; // The friend being added
+  friendId: string;
 }
 
 // ------------------------------
@@ -54,8 +57,8 @@ export interface Friend {
 export interface Message {
   id: number;
   text: string;
-  senderId: number;
-  receiverId: number;
+  senderId: string;
+  receiverId: string;
   createdAt: string;
   updatedAt: string;
   user?: User; // optional, for populating sender info if needed
@@ -131,4 +134,32 @@ export interface SuccessEvent {
   status: number;
   message: string;
   data: object;
+}
+export interface MessagePayload {
+  id: number;
+  text: string;
+  senderId: string;
+  receiverId: string;
+  createdAt: Date;
+}
+export interface SendMessageData {
+  type: string;
+  payload: {
+    text: string;
+    senderId: string;
+    receiverId: string;
+  };
+}
+export interface DeleteMessageData {
+  type: string;
+  payload: {
+    id: number;
+  };
+}
+export interface updateMessageData {
+  type: string;
+  payload: {
+    newText: string;
+    id: number;
+  };
 }

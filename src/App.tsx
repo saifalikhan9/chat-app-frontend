@@ -7,6 +7,7 @@ import ChatPage from "./components/ChatPage";
 import { ThemeProvider } from "./components/Theme-provider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { PublicOnlyRoute } from "./components/PublicRoute";
+import ChatListPage from "./components/ChatListPage";
 
 function App() {
   return (
@@ -21,6 +22,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <FriendsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/chat"
+            element={
+              <ProtectedRoute>
+                <ChatListPage />
               </ProtectedRoute>
             }
           />
