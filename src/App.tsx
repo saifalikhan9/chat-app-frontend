@@ -1,13 +1,13 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import LandingPage from "./components/LandingPage";
-import SignUpPage from "./components/SignUp";
-import SignInPage from "./components/SignIn";
-import FriendsPage from "./components/FriendsPage";
-import ChatPage from "./components/ChatPage";
+import LandingPage from "./pages/LandingPage";
+import SignUpPage from "./pages/SignUp";
+import SignInPage from "./pages/SignIn";
+import FriendsPage from "./pages/FriendsPage";
+import ChatPage from "./pages/ChatPage";
 import { ThemeProvider } from "./components/Theme-provider";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { PublicOnlyRoute } from "./components/PublicRoute";
-import ChatListPage from "./components/ChatListPage";
+import ChatListPage from "./pages/ChatListPage";
 
 function App() {
   return (
@@ -15,8 +15,22 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/signup" element={  <PublicOnlyRoute><SignUpPage /></PublicOnlyRoute>} />
-          <Route path="/signin" element={<PublicOnlyRoute><SignInPage /></PublicOnlyRoute>} />
+          <Route
+            path="/signup"
+            element={
+              <PublicOnlyRoute>
+                <SignUpPage />
+              </PublicOnlyRoute>
+            }
+          />
+          <Route
+            path="/signin"
+            element={
+              <PublicOnlyRoute>
+                <SignInPage />
+              </PublicOnlyRoute>
+            }
+          />
           <Route
             path="/friends"
             element={

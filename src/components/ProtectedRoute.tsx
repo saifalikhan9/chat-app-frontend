@@ -1,15 +1,18 @@
-import { useEffect, type PropsWithChildren } from "react";
+import { Contexts } from "@/context/Contexts";
+import { useContext, useEffect, type PropsWithChildren } from "react";
 import { useNavigate } from "react-router-dom";
 
 export const ProtectedRoute = ({ children }: PropsWithChildren) => {
-  const user = localStorage.getItem("user");
+  const { user, isLoading } = useContext(Contexts);
   const navigate = useNavigate();
-  console.log(user, "user");
+
   useEffect(() => {
-    if (user === null) {
+    if (!isLoading && !user) {
       navigate("/signin", { replace: true });
-    } 
-  }, [user, navigate]);
+    }
+  }, [isLoading, user, navigate]);
+
+  if (isLoading) return null;
 
   return children;
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { MessageCircle, Eye, EyeOff } from "lucide-react";
@@ -18,28 +18,33 @@ import {
 
 import type { LoginPayload } from "@/utils/types";
 import { login } from "@/utils/apiService";
+import { Contexts } from "@/context/Contexts";
+
 
 export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginPayload>();
+  const { setToken, setUser } = useContext(Contexts);
 
   const onSubmit: SubmitHandler<LoginPayload> = async (data) => {
     try {
       setError(null);
       const res = await login(data);
-      console.log("Login successful", res);
+      localStorage.setItem("token", res.accessToken);
+      setUser(res.user);
+      setToken(res.accessToken);
+
       navigate("/chat");
       // or your dashboard route
     } catch (err) {
       console.error(err);
-      setError( "Login failed");
+      setError("Login failed");
     }
   };
 

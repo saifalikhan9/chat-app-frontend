@@ -1,12 +1,12 @@
 import { MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Button } from "./ui/button";
-import type { User } from "./ChatPage";
+import { Button } from "../components/ui/button";
 import { logout } from "@/utils/apiService";
+import { useContext } from "react";
+import { Contexts } from "@/context/Contexts";
 
 export default function LandingPage() {
-  const data = localStorage.getItem("user")!;
-  const user: User | null = JSON.parse(data);
+const {user} = useContext(Contexts)
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-purple-900 to-black">
       {/* Header */}

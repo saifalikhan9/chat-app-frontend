@@ -14,6 +14,7 @@ export interface readData {
 }
 
 let socket: WebSocket | null = null;
+
 let messageListener: ((message: MessagePayload) => void) | null = null;
 
 export function connectWebSocket(token: string) {
@@ -90,8 +91,6 @@ export function updateMessage(data: updateMessageData) {
 }
 
 export function markMessagesAsRead(data: readData) {
-  
-
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify(data));
   } else {

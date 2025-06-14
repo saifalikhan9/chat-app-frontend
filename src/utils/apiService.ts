@@ -17,12 +17,17 @@ const apiClient = axios.create({
 });
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      console.log("here");
-
-      window.location.href = "/signin";
+  async (error) => {
+    if (error.response.status === 404 && !error.config._retry) {
+      error.config._retry = true;
+      try {
+        await generateToken();
+        return apiClient(error.config);
+      } catch (error) {
+        console.error("token refesh failed : ", error);
+      }
     }
+
     return Promise.reject(error);
   }
 );
@@ -36,45 +41,57 @@ export const signup = async (data: SignupPayload): Promise<AuthResponse> => {
 
 export const login = async (data: LoginPayload) => {
   const res: AuthAxiosResponse = await apiClient.post("/login", data);
-  console.log(res);
 
-  localStorage.setItem("token", res.data.accessToken);
-  localStorage.setItem("user", JSON.stringify(res.data.user));
   return res.data;
 };
 
 export const logout = async () => {
-  localStorage.clear();
   const res = await apiClient.get("/logout");
   return res.data.response;
+};
+export const generateToken = async () => {
+  try {
+    await apiClient.post("/generateToken");
+  } catch (error) {
+    
+    console.log(error);
+  }
 };
 
 // Users
 export const getUsers = async (): Promise<User[]> => {
   const res = await apiClient.get<User[]>("/getUsers");
-  console.log(res);
   return res.data;
 };
 
 // Friends
 export const addFriend = async (data: FriendPayload) => {
-  console.log(data, "data");
-
   const res = await apiClient.post("/addFriends", { friendEmail: data.email });
-  console.log(res);
+
   return res.data;
-};
+}; 
 
 export const getFriends = async (): Promise<User[]> => {
   const res = await apiClient.get("/getFriends");
-  console.log(res);
+
   return res.data;
 };
 
 export const deleteFriend = async (data: FriendPayload) => {
   const res = await apiClient.delete("/deleteFriend", { data });
-  console.log(res);
+
   return res.data;
 };
+export const getCurrentUser = async ()=>{
+try {
+    const res = await apiClient.get("/getMe")
+
+    
+  return res.data
+} catch (error) {
+  console.error(error)
+  return error
+}
+}
 
 export default apiClient;
